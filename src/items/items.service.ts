@@ -19,7 +19,7 @@ export class ItemsService {
       ...createItemDto.listing,
       rating: 0,
     });
-    const item = new Item({ ...createItemDto, listing });
+    const item = new Item({ ...createItemDto, comments: [], listing });
     await this.entityManager.save(item);
   }
 
@@ -30,7 +30,7 @@ export class ItemsService {
   async findOne(id: number) {
     return this.itemsRepository.findOne({
       where: { id },
-      relations: { listing: true },
+      relations: { listing: true, comments: true },
     });
   }
 
