@@ -2,6 +2,8 @@ import {
   Column,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -9,6 +11,7 @@ import {
 import { Listing } from './listing.entity';
 import { AbstractEntity } from '../../database/abstract.entity';
 import { Comment } from './comment.entity';
+import { Tag } from './tag.entity';
 
 @Entity()
 export class Item extends AbstractEntity<Item> {
@@ -25,7 +28,7 @@ export class Item extends AbstractEntity<Item> {
   @OneToMany(() => Comment, (comment) => comment.item, { cascade: true })
   comments: Comment[];
 
-  // constructor(item: Partial<Item>) {
-  //   Object.assign(this, item);
-  // }
+  @ManyToMany(() => Tag, { cascade: true })
+  @JoinTable()
+  tags: Tag[];
 }
