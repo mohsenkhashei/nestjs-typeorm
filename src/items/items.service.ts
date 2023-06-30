@@ -57,10 +57,10 @@ export class ItemsService {
       );
       item.comments = comments;
       await entityManager.save(item);
-      throw new Error();
-      const tagContent = `${Math.random()}`;
-      const tag = new Tag({ content: tagContent });
-      await entityManager.save(tag);
+      // throw new Error();
+      // const tagContent = `${Math.random()}`;
+      // const tag = new Tag({ content: tagContent });
+      // await entityManager.save(tag);
     });
   }
 
