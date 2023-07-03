@@ -59,7 +59,7 @@ export class ItemsService {
     // await this.entityManager.save(item);
     await this.entityManager.transaction(async (entityManager) => {
       const item = await this.itemsRepository.findOneBy({ id });
-      ite m.public = updateItemDto.public;
+      item.public = updateItemDto.public;
       const comments = updateItemDto.comments.map(
         (createCommentDto) => new Comment(createCommentDto),
       );
