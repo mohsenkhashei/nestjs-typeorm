@@ -15,6 +15,12 @@ export class ItemsService {
   constructor(
     @InjectRepository(Item)
     private readonly itemsRepository: Repository<Item>,
+    @InjectRepository(Comment)
+    private readonly commentsRepository: Repository<Comment>,
+    @InjectRepository(Tag)
+    private readonly tagsRepository: Repository<Tag>,
+    @InjectRepository(Listing)
+    private readonly listingRepository: Repository<Listing>,
     private readonly entityManager: EntityManager,
   ) {}
 
@@ -31,7 +37,9 @@ export class ItemsService {
   }
 
   async findAll() {
-    return this.itemsRepository.find();
+    return this.itemsRepository.find({
+      relations: { listing: true, comments: true, tags: true },
+    });
   }
 
   async findOne(id: number) {
@@ -51,7 +59,7 @@ export class ItemsService {
     // await this.entityManager.save(item);
     await this.entityManager.transaction(async (entityManager) => {
       const item = await this.itemsRepository.findOneBy({ id });
-      item.public = updateItemDto.public;
+      ite m.public = updateItemDto.public;
       const comments = updateItemDto.comments.map(
         (createCommentDto) => new Comment(createCommentDto),
       );
@@ -64,7 +72,32 @@ export class ItemsService {
     });
   }
 
-  remove(id: number) {
-    return this.itemsRepository.delete(id);
+  async remove(id: number) {
+    await this.entityManager.transaction(async (entityManager) => {
+      try {
+        const item = await this.itemsRepository.findOne({
+          where: { id },
+          relations: { listing: true, comments: true, tags: true },
+        });
+
+        if (item) {
+          if (item.comments.length > 0) {
+            const comments = item.comments.map((comment) => comment.id);
+            await this.commentsRepository.delete(comments);
+          }
+
+          if (item.tags.length > 0) {
+            const tags = item.tags.map((tag) => tag.id);
+            await this.tagsRepository.delete(tags);
+          }
+          await this.listingRepository.delete(item.listing.id);
+
+          return await entityManager.remove(item);
+        }
+      } catch (error) {
+        console.error('An error occurred while deleting the item:', error);
+        throw error;
+      }
+    });
   }
 }

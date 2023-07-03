@@ -21,14 +21,17 @@ export class Item extends AbstractEntity<Item> {
   @Column({ default: true })
   public: boolean;
 
-  @OneToOne(() => Listing, { cascade: true })
+  @OneToOne(() => Listing, { cascade: true, onDelete: 'CASCADE' })
   @JoinColumn()
   listing: Listing;
 
-  @OneToMany(() => Comment, (comment) => comment.item, { cascade: true })
+  @OneToMany(() => Comment, (comment) => comment.item, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   comments: Comment[];
 
-  @ManyToMany(() => Tag, { cascade: true })
+  @ManyToMany(() => Tag, { cascade: true, onDelete: 'CASCADE' })
   @JoinTable()
   tags: Tag[];
 }
