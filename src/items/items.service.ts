@@ -3,7 +3,7 @@ import { UpdateItemDto } from './dto/update-item.dto';
 import { EntityManager, Repository } from 'typeorm';
 import { Item } from './entities/item.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Listing } from './entities/listing.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { Comment } from './entities/comment.entity';
@@ -12,6 +12,7 @@ import { Tag } from './entities/tag.entity';
 
 @Injectable()
 export class ItemsService {
+  private readonly logger = new Logger(ItemsService.name);
   constructor(
     @InjectRepository(Item)
     private readonly itemsRepository: Repository<Item>,
@@ -34,6 +35,7 @@ export class ItemsService {
     );
     const item = new Item({ ...createItemDto, comments: [], tags, listing });
     await this.entityManager.save(item);
+    return item;
   }
 
   async findAll() {
@@ -59,16 +61,21 @@ export class ItemsService {
     // await this.entityManager.save(item);
     await this.entityManager.transaction(async (entityManager) => {
       const item = await this.itemsRepository.findOneBy({ id });
-      item.public = updateItemDto.public;
-      const comments = updateItemDto.comments.map(
-        (createCommentDto) => new Comment(createCommentDto),
-      );
-      item.comments = comments;
-      await entityManager.save(item);
-      // throw new Error();
-      // const tagContent = `${Math.random()}`;
-      // const tag = new Tag({ content: tagContent });
-      // await entityManager.save(tag);
+      if (item) {
+        item.public = updateItemDto.public;
+        const comments = updateItemDto.comments.map(
+          (createCommentDto) => new Comment(createCommentDto),
+        );
+        item.comments = comments;
+        await entityManager.save(item);
+        // throw new Error();
+        // const tagContent = `${Math.random()}`;
+        // const tag = new Tag({ content: tagContent });
+        // await entityManager.save(tag);
+      } else {
+        this.logger.log('not found in DB');
+        throw new NotFoundException();
+      }
     });
   }
 
@@ -95,8 +102,8 @@ export class ItemsService {
           return await entityManager.remove(item);
         }
       } catch (error) {
-        console.error('An error occurred while deleting the item:', error);
-        throw error;
+        this.logger.error(`error in ${error}`);
+        throw new NotFoundException();
       }
     });
   }
